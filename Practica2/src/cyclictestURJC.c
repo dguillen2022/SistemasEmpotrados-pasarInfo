@@ -19,10 +19,10 @@ struct data {
     double *latency
 };
 
-void *thread_function(void *num_thread) {
+void *thread_function(void *thread_info_ptr) {
 
     struct timespec init_time, final_time;
-    struct data thread_info;
+    struct data *thread_info = (struct data *)thread_info_ptr;
     double init_seconds, final_seconds, cost;
     int id_clock=CLOCK_MONOTONIC
 
@@ -62,7 +62,7 @@ void *thread_function(void *num_thread) {
     }
     final_seconds=final_time.tv_sec+final_time.tv_nsec/1e9;
 
-    thread_info.latency=final_seconds - init_seconds - SLEEP_TIME;
+    thread_info->latency=final_seconds - init_seconds - SLEEP_TIME;
 
    
 }
@@ -80,9 +80,10 @@ int main(int argc, char *argv[]) {
     struct data *thread_info[num_cores];
 
     for (int i = 0; i < num_cores; i++){
+        thread_info[i]=(struct data *) malloc(sizeof(struct data));
         thread_info[i]->cpu = i;
         pthread_create(&array_threads[i], NULL, thread_function,
-             NULL);
+             (void *)thread_info[i]);
     }
 
     for (int i = 0; i < N; i++){
